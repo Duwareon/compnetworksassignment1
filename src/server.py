@@ -32,7 +32,7 @@ def transmitfile(client, filepath):
     with open(filepath, "rb") as f:
         # Go to end of file, save cursor position/file size, go back to beginning
         f.seek(0, 2)
-        datasize = f.tell() + 1
+        datasize = f.tell()
         f.seek(0, 0)
 
         # Send client file size

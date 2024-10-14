@@ -9,7 +9,7 @@ def receivefile(conn, filepath):
 
     with open(filename, "wb") as f:
         datasize = int.from_bytes(conn.recv(4))
-        while f.tell()+1 < datasize:
+        while f.tell() < datasize:
             data = conn.recv(1024)
             f.write(data)
     print("File download complete")
