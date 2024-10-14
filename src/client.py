@@ -3,16 +3,15 @@ import argparse as a
 import socket as s 
 from os import path
 
+# Loop through received data given file size from server
 def receivefile(conn, filepath):
     print(f"Downloading file \"{filename}\" from server...")
 
     with open(filename, "wb") as f:
         datasize = int.from_bytes(conn.recv(4))
-        while f.tell() < datasize:
+        while f.tell()+1 < datasize:
             data = conn.recv(1024)
             f.write(data)
-        f.seek(-22, 2)
-        f.truncate()
     print("File download complete")
     return
 

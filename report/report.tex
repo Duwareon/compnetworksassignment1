@@ -9,8 +9,9 @@
 \usepackage{fontspec}
 \setromanfont{Wittgenstein}
 
-\title{Computer Networking Assignment \#1 Report}
-\author{Trenton MacNinch \and Michael XXXXXXX}
+
+\title{\textbf{Computer Networking Assignment \#1 Report}}
+\author{Trenton MacNinch \and Michael Lin}
 
 \begin{document}
 \maketitle
@@ -21,7 +22,7 @@ The \texttt{server.py} program is used with the following syntax:
 
 \texttt{./server.py [port] [numclients]}
 
-Where \texttt{[port]} is the port the user wishes the server to listen on and \texttt{[numclients]} is the number of potential clients the user wishes to allow to connect to the server.
+Where \texttt{[port]} is the port the user wishes the server to listen on and \texttt{[numclients]} is the number of potential clients the user wishes to allow to connect to the server. Once activated, the server does not require user input. It can be exited by pressing CTRL+C.
 
 \subsection{Client}
 The \texttt{client.py} program is used with the following syntax:
@@ -30,12 +31,113 @@ The \texttt{client.py} program is used with the following syntax:
 
 Where \texttt{[ip]} is the ip address the user wishes to connect to, on the port supplied as \texttt{[port]}.
 
+\subsubsection{Client Commands}
+\begin{itemize}
+	\item \texttt{name}: Gets current client name from server.
+	\item \texttt{status}: Gets all cached client data.
+	\item \texttt{list}: Lists files and subdirectories in given directory (defaults to server repository folder root).
+	\item \texttt{download}: Downloads file from server.
+	\item \texttt{exit}: Closes connection with server and exits client program.
+\end{itemize}
 
 \section{Difficulties Faced}
-Making it accept 3 connections at a time
+Informing the client of when to stop receiving the file was an issue, as our first attempts involved transmitting a specific piece of text that would tell the client program to finish the transmission. This was suboptimal, as the client program would write the transmission end signal to the file and could conceivably see the text it is looking for within the regular text of the file. The solution was to transmit the size of the file as the first 4 bytes that were sent and received after confirmation the file would be sent.
+
+The client program would also erroneously believe it could connect to the server after the client limit was reached, and then wait forever once the first message was sent. The solution to this was to set the client to timeout an unresponsive connection, and then start each connection with a HANDSHAKE message to wait for a response. The current behaviour also allows the client to wait a time for the number of connected clients to decrease, in cases where the client limit has been reached.  
 
 \section{Test Results}
+\subsection{Server Results}
+\texttt{dirt@thewagon ~/Files/School/NetworkAssignment1/src \$ ./server.py\\
+Creating server on localhost:8080 and listening for 3 clients...\\
+Allowing access to directory /home/dirt/Files/School/NetworkAssignment1/src/repo.\\
+Exit program with CTRL+C.\\
+Connection found from address 127.0.0.1:36754\\
+Receieved message from 127.0.0.1: HANDSHAKE\\
+Sending message to 127.0.0.1: HANDSHAKE ACK\\
+Receieved message from 127.0.0.1: name\\
+Sending message to 127.0.0.1: Client00\\
+Receieved message from 127.0.0.1: status\\
+Sending message to 127.0.0.1: \\
+Open connections:\\
+Client00: ('127.0.0.1', 36754) connected at 2024-10-13 20:35:16.902788\\
+\\
+Connection found from address 127.0.0.1:47370\\
+Receieved message from 127.0.0.1: HANDSHAKE\\
+Sending message to 127.0.0.1: HANDSHAKE ACK\\
+Receieved message from 127.0.0.1: status\\
+Sending message to 127.0.0.1: \\
+Open connections:\\
+Client00: ('127.0.0.1', 36754) connected at 2024-10-13 20:35:16.902788\\
+Client01: ('127.0.0.1', 47370) connected at 2024-10-13 20:35:28.874887\\
+\\
+Receieved message from 127.0.0.1: exit\\
+Sending message to 127.0.0.1: exit ACK\\
+Receieved message from 127.0.0.1: status\\
+Sending message to 127.0.0.1: \\
+Open connections:\\
+Client00: ('127.0.0.1', 36754) connected at 2024-10-13 20:35:16.902788\\
+Client01: ('127.0.0.1', 47370) connected at 2024 Oct 13 20:35:28:874887, closed at 2024 Oct 13 20:35:38:686930\\
+\\
+Receieved message from 127.0.0.1: list\\
+Sending message to 127.0.0.1: folder file1 file2 beemovie.txt\\
+Receieved message from 127.0.0.1: list folder\\
+Sending message to 127.0.0.1: file4 file3\\
+Receieved message from 127.0.0.1: download beemovie.txt\\
+Sending message to 127.0.0.1: Transmitting file...\\
+Sending Client00 file beemovie.txt (86092 bytes)\\
+File transmission complete.\\
+Receieved message from 127.0.0.1: exit\\
+Sending message to 127.0.0.1: exit ACK}
+
+\subsection{Client00 Results}
+\texttt{dirt@thewagon ~/Files/School/NetworkAssignment1/src \$ ./client.py\\
+Connecting to server on localhost:8080...\\
+Sending HANDSHAKE...\\
+Received "HANDSHAKE ACK"\\
+Input message: name\\
+Recieved message: Client00\\
+Input message: status\\
+Recieved message: \\
+Open connections:\\
+Client00: ('127.0.0.1', 36754) connected at 2024-10-13 20:35:16.902788\\
+\\
+Input message: status\\
+Recieved message: \\
+Open connections:\\
+Client00: ('127.0.0.1', 36754) connected at 2024-10-13 20:35:16.902788\\
+Client01: ('127.0.0.1', 47370) connected at 2024-10-13 20:35:28.874887\\
+\\
+Input message: status\\
+Recieved message: \\
+Open connections:\\
+Client00: ('127.0.0.1', 36754) connected at 2024-10-13 20:35:16.902788\\
+Client01: ('127.0.0.1', 47370) connected at 2024 Oct 13 20:35:28:874887, closed at 2024 Oct 13 20:35:38:686930\\
+\\
+Input message: list\\
+Recieved message: folder file1 file2 beemovie.txt\\
+Input message: list folder\\
+Recieved message: file4 file3\\
+Input message: download beemovie.txt\\
+Recieved message: Transmitting file...\\
+Downloading file "beemovie.txt" from server...\\
+File download complete\\
+Input message: exit\\
+Recieved message: exit ACK}
+
+\subsection{Client01 Results}
+\texttt{dirt@thewagon ~/Files/School/NetworkAssignment1/src \$ ./client.py \\
+Connecting to server on localhost:8080...\\
+Sending HANDSHAKE...\\
+Received "HANDSHAKE ACK"\\
+Input message: exit\\
+Recieved message: exit ACK}
 
 \section{Possible Improvements}
+\begin{itemize}
+	\item Make it more convenient to daemonize the server
+	\item Better error handling as there are probably edge cases that have been missed
+	\item Clearer command formatting, as some commands like \texttt{status} add a newline to the end of their output. This provides much easier to read output from the program, and would likely be effective in the same capacity when applied to other commands.
+	\item Currently, there is no actual sanitization of filepaths, and so commands like \texttt{list} are capable of being addressed to directories and files like \texttt{/home} or \texttt{../../report/report.pdf}. This is likely a security issue on some level, though it is of questionable importance in a local server made for educational purposes.
+\end{itemize}
 
 \end{document}
